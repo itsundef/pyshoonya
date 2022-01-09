@@ -22,6 +22,7 @@ class pyShoonya(object):
         self.susertoken=None
         self.email=None
         
+        
     def login(self):
         headers = {
     'Connection': 'keep-alive',
@@ -63,11 +64,25 @@ class pyShoonya(object):
         data='jData={"uid":"'+self.uid+'","exch":"'+exch+'","token":"'+token+'"}&jKey='+self.susertoken
         response = requests.post(self.u_scripinfo, headers=headers, data=data)
         print(response.text)
+        x=json.loads(response.text)
+        return x['exch'],x['token'],x['values'][0]['tsym']
+       
         
-    def placeorder(self,s,typ,qty,amo):
-        #WIP
+        
+    def placeorder(self,s,t,q,p,prct,a,pr):
         exch,token,tsym=self.searchscrip(s)
-        data='jData={"uid":"'+self.uid+'","actid":"'+self.uid+'","exch":"'+exch+'","tsym":"'+tsym+'","qty":"'+qty+'","prc":"'++'","prd":"M","trantype":"'+typ+'","prctyp":"'++'","ret":"'++'","amo":"'+amo+'","ordersource":"WEB"}&jKey='+self.susertoken
+        qty=q    
+        prc=p    #acceptablevalues 0 for market orders 
+        prctyp=prct
+        prd=pr   #MARGIN OR CASH acceptablevalues M,C 
+        typ=t     #acceptablevalues B,S 
+        ret="DAY" #acceptablevalues DAY,IOC 
+        amo=a or "True" #acceptablevalues Yes,No 
+        data='jData={"uid":"'+self.uid+'","actid":"'+self.uid+'","exch":"'+exch+'","tsym":"'+tsym+'","qty":"'+qty+'","prc":"'+prc+'","prd":"'+prd+'","trantype":"'+typ+'","prctyp":"'+prctyp+'","ret":"'+ret+'","amo":"'+amo+'","ordersource":"WEB"}&jKey='+self.susertoken
+        response = requests.post(self.u_placeorder, headers=headers, data=data)
+        print(response.text)
+        
+             
     def orderbook(self):
         data='jData={"uid":"'+self.uid+'"}&jKey='+self.susertoken
         response = requests.post(self.u_orderbook, headers=headers, data=data)
@@ -78,8 +93,11 @@ class pyShoonya(object):
     def positions(self):
         data='jData={"uid":"'+self.uid+'","actid":"'+self.uid+'"}&jKey='+self.susertoken
         response = requests.post(self.u_positionbook, headers=headers, data=data)
-        print(response.text)
-
+        x=json.loads(response.text)
+        print(x)
+        df=pd.DataFrame(x, index=[0])
+        return df
+    
     def cancel(self,ordno):
         data='jData={"uid":"'+self.uid+'","norenordno":"'+ordno+'","ordersource":"WEB"}&jKey='+self.susertoken
         response = requests.post(self.u_cancelorder, headers=headers, data=data)
@@ -98,7 +116,8 @@ class pyShoonya(object):
 tes=pyShoonya('#UID','#HASHEDPWD','#DOB_PAN')
 tes.login()
 #tes.limits()
-#tes.scripinfo("NIFTY13JAN22C17850")
+tes.placeorder("BANKNIFTY27JAN22F","B","25","37900","LMT","No","M")
+tes.placeorder("RELIANCE-EQ","B","1","0","MKT","Yes","M")
 tes.orderbook()
 tes.positions()
 tes.cancelAll()
