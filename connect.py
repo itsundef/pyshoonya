@@ -1,5 +1,6 @@
 import requests
 import time
+import pandas as pd
 
 class pyShoonya(object):
     login_quick_auth = "https://shoonya.finvasia.com/NorenWClientWeb/QuickAuth"
@@ -10,7 +11,7 @@ class pyShoonya(object):
     u_search="https://shoonya.finvasia.com/NorenWClientWeb/SearchScrip"
     u_scripinfo="https://shoonya.finvasia.com/NorenWClientWeb/GetSecurityInfo"
     u_placeorder="https://shoonya.finvasia.com/NorenWClientWeb/PlaceOrder"
-    
+    u_cancelorder="https://shoonya.finvasia.com/NorenWClientWeb/CancelOrder"
     
     def __init__(self,uid=None,pwd=None,factor2=None,sutok=None):
         self.uid=uid
@@ -67,11 +68,40 @@ class pyShoonya(object):
         #WIP
         exch,token,tsym=self.searchscrip(s)
         data='jData={"uid":"'+self.uid+'","actid":"'+self.uid+'","exch":"'+exch+'","tsym":"'+tsym+'","qty":"'+qty+'","prc":"'++'","prd":"M","trantype":"'+typ+'","prctyp":"'++'","ret":"'++'","amo":"'+amo+'","ordersource":"WEB"}&jKey='+self.susertoken
+    def orderbook(self):
+        data='jData={"uid":"'+self.uid+'"}&jKey='+self.susertoken
+        response = requests.post(self.u_orderbook, headers=headers, data=data)
+        x=json.loads(response.text)
+        df=pd.DataFrame.from_dict(x)
+        return df
+
+    def positions(self):
+        data='jData={"uid":"'+self.uid+'","actid":"'+self.uid+'"}&jKey='+self.susertoken
+        response = requests.post(self.u_positionbook, headers=headers, data=data)
+        print(response.text)
+
+    def cancel(self,ordno):
+        data='jData={"uid":"'+self.uid+'","norenordno":"'+ordno+'","ordersource":"WEB"}&jKey='+self.susertoken
+        response = requests.post(self.u_cancelorder, headers=headers, data=data)
+        print(response.text)
+        
+    def cancelAll(self):
+        df=self.orderbook()
+        for x in df.iloc[:,1]:
+            self.cancel(x)
+        return self.orderbook()
+        
+        
+        
+        
         
 tes=pyShoonya('#UID','#HASHEDPWD','#DOB_PAN')
 tes.login()
-tes.limits()
-tes.scripinfo("NIFTY13JAN22C17850")
+#tes.limits()
+#tes.scripinfo("NIFTY13JAN22C17850")
+tes.orderbook()
+tes.positions()
+tes.cancelAll()
 
 
 
