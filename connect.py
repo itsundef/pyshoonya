@@ -7,8 +7,12 @@ class pyShoonya(object):
     u_positionbook="https://shoonya.finvasia.com/NorenWClientWeb/PositionBook"
     u_orderbook="https://shoonya.finvasia.com/NorenWClientWeb/OrderBook"
     u_holdings="https://shoonya.finvasia.com/NorenWClientWeb/Holdings"
+    u_search="https://shoonya.finvasia.com/NorenWClientWeb/SearchScrip"
+    u_scripinfo="https://shoonya.finvasia.com/NorenWClientWeb/GetSecurityInfo"
+    u_placeorder="https://shoonya.finvasia.com/NorenWClientWeb/PlaceOrder"
     
-    def __init__(self,uid=None,pwd=None,factor2=None):
+    
+    def __init__(self,uid=None,pwd=None,factor2=None,sutok=None):
         self.uid=uid
         self.pwd=pwd
         self.factor2=factor2
@@ -45,11 +49,31 @@ class pyShoonya(object):
         data = 'jData={"uid":"'+self.uid+'","actid":"'+self.uid+'"}&jKey='+self.susertoken+''
         response = requests.post(self.u_limits, headers=headers, data=data)
         print(response.text)
-
-
+    
+    def searchscrip(self,s):
+        data='jData={"uid":"'+self.uid+'","stext":"'+s+'"}&jKey='+self.susertoken
+        response = requests.post(self.u_search, headers=headers, data=data)
+        print(response.text)
+        x=json.loads(response.text)
+        return x['values'][0]['exch'],x['values'][0]['token'],x['values'][0]['tsym']
+            
+    def scripinfo(self,s):
+        exch,token,tsym=self.searchscrip(s)
+        data='jData={"uid":"'+self.uid+'","exch":"'+exch+'","token":"'+token+'"}&jKey='+self.susertoken
+        response = requests.post(self.u_scripinfo, headers=headers, data=data)
+        print(response.text)
         
-
+    def placeorder(self,s,typ,qty,amo):
+        #WIP
+        exch,token,tsym=self.searchscrip(s)
+        data='jData={"uid":"'+self.uid+'","actid":"'+self.uid+'","exch":"'+exch+'","tsym":"'+tsym+'","qty":"'+qty+'","prc":"'++'","prd":"M","trantype":"'+typ+'","prctyp":"'++'","ret":"'++'","amo":"'+amo+'","ordersource":"WEB"}&jKey='+self.susertoken
         
 tes=pyShoonya('#UID','#HASHEDPWD','#DOB_PAN')
 tes.login()
 tes.limits()
+tes.scripinfo("NIFTY13JAN22C17850")
+
+
+
+
+
